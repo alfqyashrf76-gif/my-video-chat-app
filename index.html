@@ -1,0 +1,1838 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق اتصالات جماعية متقدم - الإصدار 2.0</title>
+    <style>
+        :root { 
+            --primary-color: #007bff; 
+            --secondary-color: #6c757d; 
+            --bg-light: #f8f9fa; 
+            --border-color: #dee2e6; 
+            --danger-color: #dc3545; 
+            --success-color: #28a745; 
+            --warning-color: #ffc107;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        body { 
+            font-family: 'Cairo', sans-serif; 
+            padding: 20px; 
+            background-color: #e9ecef; 
+            color: #343a40; 
+            display: flex; 
+            justify-content: center;
+            margin: 0;
+        }
+        
+        .container { 
+            width: 100%; 
+            max-width: 1100px; 
+        }
+        
+        .area { 
+            border: 1px solid var(--border-color); 
+            padding: 20px; 
+            margin-bottom: 20px; 
+            border-radius: 8px; 
+            background-color: #fff; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05); 
+        }
+        
+        h1, h2, h3 { 
+            color: #343a40; 
+            margin-top: 0;
+        }
+        
+        input[type="text"], select { 
+            width: 100%; 
+            padding: 10px; 
+            margin-bottom: 10px; 
+            border: 1px solid var(--border-color); 
+            border-radius: 4px;
+            font-family: inherit;
+        }
+        
+        button { 
+            padding: 10px 15px; 
+            margin: 5px; 
+            border: none; 
+            border-radius: 4px; 
+            background-color: var(--primary-color); 
+            color: white; 
+            cursor: pointer; 
+            font-size: 16px; 
+            transition: background-color 0.2s;
+            font-family: inherit;
+        }
+        
+        button:hover { 
+            background-color: #0056b3; 
+        }
+        
+        button:disabled { 
+            background-color: #a9cffa; 
+            cursor: not-allowed; 
+        }
+        
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .status.success {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .status.error {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        .status.info {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .status.warning {
+            background-color: var(--warning-color);
+            color: #212529;
+        }
+        
+        #group-container { 
+            display: grid; 
+            grid-template-columns: 3fr 1fr; 
+            gap: 20px; 
+        }
+        
+        #main-area { 
+            display: flex; 
+            flex-direction: column; 
+        }
+        
+        #sidebar-area { 
+            border-right: 1px solid var(--border-color); 
+            padding-right: 20px; 
+        }
+        
+        #video-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 10px; 
+            background-color: #000; 
+            padding: 10px; 
+            border-radius: 8px; 
+            min-height: 200px; 
+        }
+        
+        .video-container { 
+            position: relative; 
+            background-color: #222; 
+            border-radius: 4px; 
+            overflow: hidden;
+            aspect-ratio: 16/9;
+        }
+        
+        .video-container video { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+        }
+        
+        .video-container .name-tag { 
+            position: absolute; 
+            bottom: 8px; 
+            left: 8px; 
+            background-color: rgba(0,0,0,0.5); 
+            color: white; 
+            padding: 2px 8px; 
+            border-radius: 4px; 
+            font-size: 14px; 
+        }
+        
+        .video-container.speaking { 
+            box-shadow: 0 0 15px 5px var(--success-color); 
+        }
+
+        .quality-indicator {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 12px;
+            background: rgba(0,0,0,0.6);
+            padding: 2px 4px;
+            border-radius: 3px;
+            color: white;
+        }
+
+        .quality-indicator.poor { color: var(--danger-color); }
+        .quality-indicator.fair { color: var(--warning-color); }
+        .quality-indicator.good { color: var(--success-color); }
+
+        .audio-indicator {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            font-size: 16px;
+            background: rgba(0,0,0,0.6);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        .audio-indicator.muted { color: var(--danger-color); }
+        .audio-indicator.unmuted { color: var(--success-color); }
+
+        #call-controls { 
+            text-align: center; 
+            padding: 10px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            gap: 10px; 
+        }
+        
+        #call-controls button { 
+            border-radius: 50%; 
+            width: 50px; 
+            height: 50px; 
+            font-size: 20px; 
+        }
+        
+        #toggle-mic.muted, #toggle-cam.off { 
+            background-color: var(--danger-color); 
+        }
+        
+        #share-screen-btn.sharing { 
+            background-color: var(--success-color); 
+        }
+
+        #participants-list { 
+            list-style-type: none; 
+            padding: 0; 
+        }
+        
+        #participants-list li {
+            padding: 8px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .participant-status {
+            display: flex;
+            gap: 5px;
+            font-size: 12px;
+        }
+
+        .connection-quality {
+            padding: 5px 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .connection-quality.excellent {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .connection-quality.good {
+            background-color: #20c997;
+            color: white;
+        }
+
+        .connection-quality.fair {
+            background-color: var(--warning-color);
+            color: #212529;
+        }
+
+        .connection-quality.poor {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        #messages { 
+            height: 150px; 
+            border: 1px solid var(--border-color); 
+            overflow-y: scroll; 
+            padding: 10px; 
+            margin-top: 10px; 
+            background-color: var(--bg-light); 
+            border-radius: 4px; 
+        }
+        
+        .message { 
+            margin-bottom: 8px; 
+            padding: 8px 12px; 
+            border-radius: 18px; 
+            max-width: 80%; 
+            word-wrap: break-word; 
+        }
+        
+        .message.mine { 
+            background-color: var(--primary-color); 
+            color: white; 
+            margin-left: auto; 
+        }
+        
+        .message.theirs { 
+            background-color: #e9ecef; 
+            color: #333; 
+            margin-right: auto; 
+        }
+        
+        .message.system { 
+            text-align: center; 
+            font-style: italic; 
+            font-size: 0.9em; 
+            color: var(--secondary-color); 
+        }
+
+        .invite-link {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .invite-link input {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        
+        .copy-btn {
+            background-color: var(--success-color);
+            padding: 10px;
+            white-space: nowrap;
+        }
+
+        #loading-indicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 10000;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .reconnect-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: var(--warning-color);
+            color: #212529;
+            text-align: center;
+            padding: 10px;
+            z-index: 9999;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            #group-container { 
+                grid-template-columns: 1fr; 
+            }
+            #sidebar-area { 
+                border-right: none; 
+                padding-right: 0; 
+                order: -1; 
+            }
+            
+            body {
+                padding: 10px;
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="container">
+        <h1>تطبيق اتصالات جماعية متقدم - الإصدار 2.0</h1>
+
+        <!-- منطقة الإعداد -->
+        <div class="area" id="setup-area">
+            <h2>1. اختر اسمك وأجهزتك</h2>
+            <input type="text" id="name-input" placeholder="أدخل اسمك هنا..." maxlength="50">
+            
+            <label for="audio-input-select">الميكروفون:</label>
+            <select id="audio-input-select"></select>
+            
+            <label for="video-input-select">الكاميرا:</label>
+            <select id="video-input-select"></select>
+            
+            <button id="confirm-name-btn">تأكيد وبدء</button>
+            <div id="setup-status"></div>
+        </div>
+
+        <!-- منطقة الاتصال -->
+        <div class="area" id="connection-area" style="display:none;">
+            <h2>2. اتصل مع الآخرين</h2>
+            <p>مرحباً <strong id="my-name-display"></strong>!</p>
+            <p>معرف الاتصال الخاص بك: <code id="my-id"></code></p>
+            
+            <div class="connection-quality" id="connection-quality"></div>
+            
+            <h3>ادع أشخاص آخرين</h3>
+            <div class="invite-link">
+                <input type="text" id="invite-url" readonly placeholder="سيتم إنشاء رابط الدعوة هنا...">
+                <button class="copy-btn" id="copy-invite-btn" disabled>نسخ الرابط</button>
+            </div>
+            
+            <h3>أو انضم لمجموعة موجودة</h3>
+            <input type="text" id="invite-input" placeholder="ألصق رابط الدعوة أو المعرف هنا...">
+            <button id="join-btn">انضمام</button>
+            
+            <div id="connection-status"></div>
+        </div>
+
+        <!-- منطقة المكالمة الجماعية -->
+        <div id="group-container" style="display:none;">
+            <div id="main-area" class="area">
+                <div id="video-grid"></div>
+                <div id="call-controls">
+                    <button id="toggle-mic" title="كتم/إلغاء كتم الصوت">🎤</button>
+                    <button id="toggle-cam" title="إيقاف/تشغيل الكاميرا">📷</button>
+                    <button id="share-screen-btn" title="مشاركة الشاشة">🖥️</button>
+                    <button id="end-call-btn" title="إنهاء المكالمة" style="background-color: var(--danger-color);">📞</button>
+                </div>
+                <hr>
+                <h3>الدردشة</h3>
+                <div id="messages"></div>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="message-input" placeholder="اكتب رسالتك..." maxlength="500" style="flex: 1;">
+                    <button id="send-btn">إرسال</button>
+                </div>
+            </div>
+            <div id="sidebar-area" class="area">
+                <h3>المشاركون (<span id="participant-count">1</span>)</h3>
+                <ul id="participants-list"></ul>
+                
+                <hr>
+                <h3>إحصائيات الاتصال</h3>
+                <div id="connection-stats"></div>
+                
+                <hr>
+                <h3>الإعدادات</h3>
+                <label for="audio-change-select">تغيير الميكروفون:</label>
+                <select id="audio-change-select"></select>
+                
+                <label for="video-change-select">تغيير الكاميرا:</label>
+                <select id="video-change-select"></select>
+            </div>
+        </div>
+    </div>
+
+    <!-- تحميل مكتبة PeerJS -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    
+    <script>
+        // === المتغيرات العامة ===
+        const setupArea = document.getElementById('setup-area');
+        const nameInput = document.getElementById('name-input');
+        const confirmNameBtn = document.getElementById('confirm-name-btn');
+        const connectionArea = document.getElementById('connection-area');
+        const myNameDisplay = document.getElementById('my-name-display');
+        const myIdSpan = document.getElementById('my-id');
+        const inviteUrl = document.getElementById('invite-url');
+        const copyInviteBtn = document.getElementById('copy-invite-btn');
+        const inviteInput = document.getElementById('invite-input');
+        const joinBtn = document.getElementById('join-btn');
+        const groupContainer = document.getElementById('group-container');
+        const videoGrid = document.getElementById('video-grid');
+        const toggleMicBtn = document.getElementById('toggle-mic');
+        const toggleCamBtn = document.getElementById('toggle-cam');
+        const shareScreenBtn = document.getElementById('share-screen-btn');
+        const endCallBtn = document.getElementById('end-call-btn');
+        const participantsList = document.getElementById('participants-list');
+        const participantCount = document.getElementById('participant-count');
+        const messagesDiv = document.getElementById('messages');
+        const messageInput = document.getElementById('message-input');
+        const sendBtn = document.getElementById('send-btn');
+        const audioSelect = document.getElementById('audio-input-select');
+        const videoSelect = document.getElementById('video-input-select');
+        const audioChangeSelect = document.getElementById('audio-change-select');
+        const videoChangeSelect = document.getElementById('video-change-select');
+        const setupStatus = document.getElementById('setup-status');
+        const connectionStatus = document.getElementById('connection-status');
+        const connectionQuality = document.getElementById('connection-quality');
+        const connectionStats = document.getElementById('connection-stats');
+
+        // متغيرات التطبيق
+        let peer = null;
+        let myPeerId = null;
+        let myName = '';
+        let connections = {};
+        let localStream = null;
+        let screenStream = null;
+        let isSharingScreen = false;
+        let audioAnalysers = {};
+        let speakingInterval = null;
+        let audioContext = null;
+        let isMuted = false;
+        let isCameraOff = false;
+        let lastConnectedPeerId = null;
+        let connectionManager = null;
+        let statsMonitor = null;
+        let isReconnecting = false;
+        let participantStates = {};
+
+        // كلاسات التحسين
+        class ConnectionManager {
+            constructor() {
+                this.reconnectAttempts = 0;
+                this.maxReconnectAttempts = 5;
+                this.reconnectDelay = 2000;
+                this.isReconnecting = false;
+            }
+
+            async reconnectToPeer(peerId) {
+                if (this.isReconnecting || this.reconnectAttempts >= this.maxReconnectAttempts) {
+                    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+                        showStatus('connection-status', 'error', 'فشل في إعادة الاتصال نهائياً');
+                        this.showReconnectBanner(false);
+                    }
+                    return;
+                }
+
+                this.isReconnecting = true;
+                this.reconnectAttempts++;
+                this.showReconnectBanner(true);
+                
+                showStatus('connection-status', 'warning', `محاولة إعادة الاتصال ${this.reconnectAttempts}...`);
+
+                try {
+                    await new Promise(resolve => setTimeout(resolve, this.reconnectDelay * this.reconnectAttempts));
+                    
+                    // إعادة إنشاء Peer
+                    if (peer) {
+                        peer.destroy();
+                    }
+                    await initializePeer();
+                    await connectToPeer(peerId);
+                    
+                    this.reconnectAttempts = 0;
+                    this.isReconnecting = false;
+                    this.showReconnectBanner(false);
+                    showStatus('connection-status', 'success', 'تم إعادة الاتصال بنجاح');
+                    
+                } catch (error) {
+                    console.error('فشل في إعادة الاتصال:', error);
+                    this.isReconnecting = false;
+                    setTimeout(() => this.reconnectToPeer(peerId), 1000);
+                }
+            }
+
+            showReconnectBanner(show) {
+                let banner = document.getElementById('reconnect-banner');
+                if (show && !banner) {
+                    banner = document.createElement('div');
+                    banner.id = 'reconnect-banner';
+                    banner.className = 'reconnect-banner';
+                    banner.textContent = 'جاري إعادة الاتصال...';
+                    document.body.appendChild(banner);
+                } else if (!show && banner) {
+                    banner.remove();
+                }
+            }
+
+            reset() {
+                this.reconnectAttempts = 0;
+                this.isReconnecting = false;
+                this.showReconnectBanner(false);
+            }
+        }
+
+        class StatsMonitor {
+            constructor() {
+                this.stats = {};
+                this.monitoring = false;
+            }
+
+            start() {
+                if (this.monitoring) return;
+                this.monitoring = true;
+                
+                this.interval = setInterval(async () => {
+                    await this.updateStats();
+                    this.updateUI();
+                }, 5000);
+            }
+
+            stop() {
+                if (this.interval) {
+                    clearInterval(this.interval);
+                    this.interval = null;
+                }
+                this.monitoring = false;
+                this.stats = {};
+            }
+
+            async updateStats() {
+                for (const peerId in connections) {
+                    if (connections[peerId].mediaConn?.peerConnection) {
+                        try {
+                            const stats = await connections[peerId].mediaConn.peerConnection.getStats();
+                            this.processStats(peerId, stats);
+                        } catch (error) {
+                            console.error('خطأ في جمع الإحصائيات:', error);
+                        }
+                    }
+                }
+            }
+
+            processStats(peerId, stats) {
+                let inboundVideo = null;
+                let outboundVideo = null;
+                let candidatePair = null;
+
+                stats.forEach(report => {
+                    if (report.type === 'inbound-rtp' && report.mediaType === 'video') {
+                        inboundVideo = report;
+                    } else if (report.type === 'outbound-rtp' && report.mediaType === 'video') {
+                        outboundVideo = report;
+                    } else if (report.type === 'candidate-pair' && report.state === 'succeeded') {
+                        candidatePair = report;
+                    }
+                });
+
+                if (inboundVideo || outboundVideo || candidatePair) {
+                    this.stats[peerId] = {
+                        timestamp: Date.now(),
+                        bytesReceived: inboundVideo?.bytesReceived || 0,
+                        bytesSent: outboundVideo?.bytesSent || 0,
+                        packetsLost: inboundVideo?.packetsLost || 0,
+                        packetsReceived: inboundVideo?.packetsReceived || 0,
+                        roundTripTime: candidatePair?.currentRoundTripTime || 0,
+                        availableOutgoingBitrate: candidatePair?.availableOutgoingBitrate || 0
+                    };
+                }
+            }
+
+            updateUI() {
+                let html = '';
+                let overallQuality = 'excellent';
+
+                for (const peerId in this.stats) {
+                    const stat = this.stats[peerId];
+                    const name = connections[peerId]?.name || 'مجهول';
+                    
+                    const bitrate = Math.round(stat.bytesReceived * 8 / 5000); // Kbps
+                    const packetLoss = stat.packetsReceived > 0 ? 
+                        (stat.packetsLost / stat.packetsReceived * 100).toFixed(1) : 0;
+                    const rtt = Math.round(stat.roundTripTime * 1000);
+
+                    let quality = 'excellent';
+                    if (packetLoss > 5 || rtt > 300) quality = 'poor';
+                    else if (packetLoss > 2 || rtt > 150 || bitrate < 500) quality = 'fair';
+                    else if (bitrate < 1000) quality = 'good';
+
+                    if (quality === 'poor') overallQuality = 'poor';
+                    else if (quality === 'fair' && overallQuality !== 'poor') overallQuality = 'fair';
+                    else if (quality === 'good' && overallQuality === 'excellent') overallQuality = 'good';
+
+                    html += `
+                        <div class="connection-quality ${quality}">
+                            <strong>${sanitizeText(name)}</strong><br>
+                            السرعة: ${bitrate} Kbps<br>
+                            فقدان الحزم: ${packetLoss}%<br>
+                            زمن الاستجابة: ${rtt}ms
+                        </div>
+                    `;
+
+                    this.updateVideoQualityIndicator(peerId, quality);
+                }
+
+                connectionStats.innerHTML = html || '<p>لا توجد إحصائيات متاحة</p>';
+                this.updateOverallQuality(overallQuality);
+            }
+
+            updateVideoQualityIndicator(peerId, quality) {
+                const container = document.getElementById(`video-container-${peerId}`);
+                if (!container) return;
+
+                let indicator = container.querySelector('.quality-indicator');
+                if (!indicator) {
+                    indicator = document.createElement('div');
+                    indicator.className = 'quality-indicator';
+                    container.appendChild(indicator);
+                }
+
+                indicator.className = `quality-indicator ${quality}`;
+                const signals = {
+                    'excellent': '📶📶📶',
+                    'good': '📶📶',
+                    'fair': '📶',
+                    'poor': '📵'
+                };
+                indicator.textContent = signals[quality] || '📶';
+            }
+
+            updateOverallQuality(quality) {
+                connectionQuality.className = `connection-quality ${quality}`;
+                const messages = {
+                    'excellent': 'جودة الاتصال ممتازة 🟢',
+                    'good': 'جودة الاتصال جيدة 🟡', 
+                    'fair': 'جودة الاتصال متوسطة 🟠',
+                    'poor': 'جودة الاتصال ضعيفة 🔴'
+                };
+                connectionQuality.textContent = messages[quality] || 'غير محدد';
+            }
+        }
+
+        // === بدء التطبيق ===
+        window.addEventListener('load', initializeApp);
+
+        async function initializeApp() {
+            try {
+                showLoadingIndicator('جاري تهيئة التطبيق...');
+                await getMediaDevices();
+                loadSettings();
+                setupEventListeners();
+                setupNetworkMonitoring();
+                
+                connectionManager = new ConnectionManager();
+                statsMonitor = new StatsMonitor();
+                
+                hideLoadingIndicator();
+                showStatus('setup-status', 'info', 'جاهز للبدء! أدخل اسمك واختر أجهزتك.');
+            } catch (error) {
+                console.error('خطأ في تهيئة التطبيق:', error);
+                hideLoadingIndicator();
+                showStatus('setup-status', 'error', 'خطأ في الوصول للأجهزة. تأكد من السماح بالوصول للكاميرا والميكروفون.');
+            }
+        }
+
+        // === إدارة الأجهزة المحسنة ===
+        async function getMediaDevices() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+                stream.getTracks().forEach(track => track.stop());
+
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                populateDeviceSelects(devices);
+            } catch (error) {
+                console.error("خطأ في الوصول للأجهزة:", error);
+                throw error;
+            }
+        }
+
+        function populateDeviceSelects(devices) {
+            const audioDevices = devices.filter(device => device.kind === 'audioinput');
+            const videoDevices = devices.filter(device => device.kind === 'videoinput');
+
+            [audioSelect, audioChangeSelect].forEach(select => {
+                select.innerHTML = '';
+                audioDevices.forEach(device => {
+                    const option = document.createElement('option');
+                    option.value = device.deviceId;
+                    option.textContent = device.label || `ميكروفون ${device.deviceId.substr(0, 5)}`;
+                    select.appendChild(option);
+                });
+            });
+
+            [videoSelect, videoChangeSelect].forEach(select => {
+                select.innerHTML = '';
+                videoDevices.forEach(device => {
+                    const option = document.createElement('option');
+                    option.value = device.deviceId;
+                    option.textContent = device.label || `كاميرا ${device.deviceId.substr(0, 5)}`;
+                    select.appendChild(option);
+                });
+            });
+        }
+
+        // === إعداد مراقبة الشبكة ===
+        function setupNetworkMonitoring() {
+            window.addEventListener('online', () => {
+                showStatus('connection-status', 'success', 'تم استعادة الاتصال بالإنترنت.');
+                if (lastConnectedPeerId && !isReconnecting) {
+                    connectionManager.reconnectToPeer(lastConnectedPeerId);
+                }
+            });
+            
+            window.addEventListener('offline', () => {
+                showStatus('connection-status', 'error', 'تم فقدان الاتصال بالإنترنت.');
+            });
+        }
+
+        // === إعداد الأحداث ===
+        function setupEventListeners() {
+            confirmNameBtn.addEventListener('click', handleConfirmName);
+            copyInviteBtn.addEventListener('click', copyInviteLink);
+            joinBtn.addEventListener('click', handleJoinGroup);
+            sendBtn.addEventListener('click', sendMessage);
+            messageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
+            toggleMicBtn.addEventListener('click', toggleMicrophone);
+            toggleCamBtn.addEventListener('click', toggleCamera);
+            shareScreenBtn.addEventListener('click', toggleScreenSharing);
+            endCallBtn.addEventListener('click', endCall);
+            audioChangeSelect.addEventListener('change', () => changeDevice('audio'));
+            videoChangeSelect.addEventListener('change', () => changeDevice('video'));
+
+            window.addEventListener('beforeunload', cleanup);
+        }
+
+        // === بدء الاتصال المحسن ===
+        async function handleConfirmName() {
+            const name = nameInput.value.trim();
+            if (!name) {
+                showStatus('setup-status', 'error', 'الرجاء إدخال اسم صحيح.');
+                return;
+            }
+
+            if (name.length > 50) {
+                showStatus('setup-status', 'error', 'الاسم طويل جداً. الحد الأقصى 50 حرف.');
+                return;
+            }
+
+            myName = name;
+            saveSettings();
+            
+            try {
+                confirmNameBtn.disabled = true;
+                showLoadingIndicator('جاري التهيئة...');
+                
+                await startMediaWithRetry();
+                await initializePeer();
+                
+                hideLoadingIndicator();
+                setupArea.style.display = 'none';
+                connectionArea.style.display = 'block';
+                
+            } catch (error) {
+                console.error('خطأ في بدء التطبيق:', error);
+                hideLoadingIndicator();
+                showStatus('setup-status', 'error', 'خطأ في بدء التطبيق. حاول مرة أخرى.');
+                confirmNameBtn.disabled = false;
+            }
+        }
+
+        // === تهيئة PeerJS المحسنة ===
+        async function initializePeer() {
+            return new Promise((resolve, reject) => {
+                try {
+                    peer = new Peer({
+                        config: {
+                            'iceServers': [
+                                { urls: 'stun:stun.l.google.com:19302' },
+                                { urls: 'stun:stun1.l.google.com:19302' },
+                                { urls: 'stun:stun2.l.google.com:19302' },
+                                { 
+                                    urls: 'turn:numb.viagenie.ca',
+                                    credential: 'muazkh',
+                                    username: 'webrtc@live.com'
+                                },
+                                {
+                                    urls: 'turn:192.158.29.39:3478?transport=udp',
+                                    credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
+                                    username: '28224511:1379330808'
+                                },
+                                {
+                                    urls: 'turn:192.158.29.39:3478?transport=tcp',
+                                    credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
+                                    username: '28224511:1379330808'
+                                }
+                            ]
+                        },
+                        debug: 0
+                    });
+
+                    peer.on('open', (id) => {
+                        myPeerId = id;
+                        myNameDisplay.textContent = myName;
+                        myIdSpan.textContent = id;
+                        
+                        const inviteLink = `${window.location.origin}${window.location.pathname}?join=${id}`;
+                        inviteUrl.value = inviteLink;
+                        copyInviteBtn.disabled = false;
+                        
+                        showStatus('connection-status', 'success', 'جاهز للاتصال!');
+                        
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const joinId = urlParams.get('join');
+                        if (joinId && joinId !== id) {
+                            inviteInput.value = joinId;
+                            showStatus('connection-status', 'info', 'تم العثور على دعوة. اضغط انضمام للاتصال.');
+                        }
+                        
+                        resolve();
+                    });
+
+                    peer.on('connection', handleIncomingConnection);
+                    peer.on('call', handleIncomingCall);
+                    
+                    peer.on('disconnected', () => {
+                        console.log('Peer disconnected, attempting to reconnect...');
+                        if (!isReconnecting && lastConnectedPeerId) {
+                            isReconnecting = true;
+                            connectionManager.reconnectToPeer(lastConnectedPeerId);
+                        }
+                    });
+                    
+                    peer.on('error', (error) => {
+                        console.error('خطأ في PeerJS:', error);
+                        if (error.type === 'network' || error.type === 'server-error') {
+                            showStatus('connection-status', 'warning', 'مشكلة في الشبكة، جاري إعادة المحاولة...');
+                            if (lastConnectedPeerId && !isReconnecting) {
+                                connectionManager.reconnectToPeer(lastConnectedPeerId);
+                            }
+                        } else {
+                            showStatus('connection-status', 'error', `خطأ في الاتصال: ${error.message}`);
+                        }
+                        reject(error);
+                    });
+
+                    setTimeout(() => {
+                        if (!myPeerId) {
+                            reject(new Error('انتهت مهلة الاتصال'));
+                        }
+                    }, 15000);
+
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        }
+
+        // === إدارة الوسائط المحسنة ===
+        async function startMediaWithRetry(maxAttempts = 3) {
+            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+                try {
+                    await startMedia();
+                    return;
+                } catch (error) {
+                    console.error(`فشل في المحاولة ${attempt}:`, error);
+                    
+                    if (attempt === maxAttempts) {
+                        try {
+                            const constraints = {
+                                audio: { 
+                                    echoCancellation: true,
+                                    noiseSuppression: true
+                                },
+                                video: { 
+                                    width: { ideal: 640 },
+                                    height: { ideal: 480 }
+                                }
+                            };
+                            localStream = await navigator.mediaDevices.getUserMedia(constraints);
+                            setupLocalAudioAnalyser();
+                            return;
+                        } catch (fallbackError) {
+                            throw new Error('فشل في الوصول للوسائط حتى بالجودة المنخفضة');
+                        }
+                    }
+                    
+                    await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+                }
+            }
+        }
+
+        async function startMedia() {
+            try {
+                if (localStream) {
+                    localStream.getTracks().forEach(track => track.stop());
+                }
+
+                const constraints = {
+                    audio: { 
+                        deviceId: audioSelect.value ? { exact: audioSelect.value } : undefined,
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    },
+                    video: { 
+                        deviceId: videoSelect.value ? { exact: videoSelect.value } : undefined,
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        frameRate: { ideal: 30 }
+                    }
+                };
+
+                localStream = await navigator.mediaDevices.getUserMedia(constraints);
+                setupLocalAudioAnalyser();
+                
+            } catch (error) {
+                console.error('خطأ في الوصول للوسائط:', error);
+                throw new Error('فشل في الوصول للكاميرا والميكروفون');
+            }
+        }
+
+        async function changeDevice(type) {
+            try {
+                showLoadingIndicator('جاري تغيير الجهاز...');
+                
+                const audioDeviceId = audioChangeSelect.value;
+                const videoDeviceId = videoChangeSelect.value;
+                
+                const constraints = {
+                    audio: { 
+                        deviceId: audioDeviceId ? { exact: audioDeviceId } : undefined,
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    },
+                    video: { 
+                        deviceId: videoDeviceId ? { exact: videoDeviceId } : undefined,
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                };
+
+                const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+                
+                if (localStream) {
+                    localStream.getTracks().forEach(track => track.stop());
+                }
+                
+                localStream = newStream;
+                
+                const localVideo = document.getElementById(`video-${myPeerId}`);
+                if (localVideo) {
+                    localVideo.srcObject = localStream;
+                }
+                
+                Object.values(connections).forEach(conn => {
+                    if (conn.mediaConn && conn.mediaConn.peerConnection) {
+                        const senders = conn.mediaConn.peerConnection.getSenders();
+                        
+                        const audioSender = senders.find(s => s.track && s.track.kind === 'audio');
+                        if (audioSender && localStream.getAudioTracks()[0]) {
+                            audioSender.replaceTrack(localStream.getAudioTracks()[0]);
+                        }
+                        
+                        const videoSender = senders.find(s => s.track && s.track.kind === 'video');
+                        if (videoSender && localStream.getVideoTracks()[0]) {
+                            videoSender.replaceTrack(localStream.getVideoTracks()[0]);
+                        }
+                    }
+                });
+                
+                setupLocalAudioAnalyser();
+                hideLoadingIndicator();
+                
+            } catch (error) {
+                console.error('خطأ في تغيير الجهاز:', error);
+                hideLoadingIndicator();
+                alert('فشل في تغيير الجهاز. تأكد من توفر الجهاز.');
+            }
+        }
+
+        // === إدارة الاتصالات المحسنة ===
+        function handleIncomingConnection(dataConn) {
+            setupDataConnection(dataConn);
+        }
+
+        function handleIncomingCall(mediaCall) {
+            mediaCall.answer(localStream);
+            setupMediaConnection(mediaCall);
+        }
+
+        function setupDataConnection(dataConn) {
+            connections[dataConn.peer] = connections[dataConn.peer] || {};
+            connections[dataConn.peer].dataConn = dataConn;
+
+            dataConn.on('data', (data) => handleIncomingData(dataConn.peer, data));
+            
+            dataConn.on('close', () => {
+                removeParticipant(dataConn.peer);
+            });
+
+            dataConn.on('error', (error) => {
+                console.error('خطأ في اتصال البيانات:', error);
+                removeParticipant(dataConn.peer);
+            });
+        }
+
+        function setupMediaConnection(mediaCall) {
+            connections[mediaCall.peer] = connections[mediaCall.peer] || {};
+            connections[mediaCall.peer].mediaConn = mediaCall;
+
+            mediaCall.on('stream', (remoteStream) => {
+                addVideoStream(mediaCall.peer, remoteStream);
+                setupRemoteAudioAnalyser(mediaCall.peer, remoteStream);
+            });
+
+            mediaCall.on('close', () => {
+                removeParticipant(mediaCall.peer);
+            });
+
+            mediaCall.on('error', (error) => {
+                console.error('خطأ في اتصال الوسائط:', error);
+                removeParticipant(mediaCall.peer);
+            });
+        }
+
+        // === الانضمام للمجموعة المحسن ===
+        async function handleJoinGroup() {
+            const input = inviteInput.value.trim();
+            if (!input) {
+                showStatus('connection-status', 'error', 'الرجاء إدخال رابط الدعوة أو المعرف.');
+                return;
+            }
+
+            let peerId = input;
+            
+            if (input.includes('join=')) {
+                const urlParams = new URLSearchParams(input.split('?')[1]);
+                peerId = urlParams.get('join');
+            }
+
+            if (!peerId || peerId === myPeerId) {
+                showStatus('connection-status', 'error', 'معرف غير صحيح أو هو نفس معرفك.');
+                return;
+            }
+
+            try {
+                joinBtn.disabled = true;
+                showLoadingIndicator('جاري الاتصال...');
+                
+                lastConnectedPeerId = peerId;
+                await connectToPeer(peerId);
+                
+                hideLoadingIndicator();
+                connectionArea.style.display = 'none';
+                groupContainer.style.display = 'block';
+                
+                addVideoStream(myPeerId, localStream, true);
+                startOptimizedSpeakingDetection();
+                statsMonitor.start();
+                
+                showSystemMessage('انضممت للمكالمة الجماعية');
+                
+            } catch (error) {
+                console.error('خطأ في الانضمام:', error);
+                hideLoadingIndicator();
+                showStatus('connection-status', 'error', 'فشل في الاتصال. تأكد من صحة المعرف.');
+                joinBtn.disabled = false;
+            }
+        }
+
+        async function connectToPeer(peerId) {
+            return new Promise((resolve, reject) => {
+                try {
+                    const dataConn = peer.connect(peerId);
+                    const mediaCall = peer.call(peerId, localStream);
+
+                    setupDataConnection(dataConn);
+                    setupMediaConnection(mediaCall);
+
+                    dataConn.on('open', () => {
+                        dataConn.send({
+                            type: 'user-info',
+                            name: myName,
+                            peerId: myPeerId
+                        });
+                        
+                        // إرسال حالة الصوت والفيديو الحالية
+                        dataConn.send({
+                            type: 'audio-state',
+                            peerId: myPeerId,
+                            muted: isMuted
+                        });
+                        
+                        dataConn.send({
+                            type: 'video-state',
+                            peerId: myPeerId,
+                            cameraOff: isCameraOff
+                        });
+                        
+                        resolve();
+                    });
+
+                    setTimeout(() => {
+                        if (!connections[peerId] || !connections[peerId].dataConn) {
+                            reject(new Error('انتهت مهلة الاتصال'));
+                        }
+                    }, 15000);
+
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        }
+
+        // === معالجة البيانات الواردة المحسنة ===
+        function handleIncomingData(peerId, data) {
+            try {
+                switch (data.type) {
+                    case 'user-info':
+                        addParticipant(peerId, data.name);
+                        if (connections[peerId] && connections[peerId].dataConn) {
+                            connections[peerId].dataConn.send({
+                                type: 'user-info',
+                                name: myName,
+                                peerId: myPeerId
+                            });
+                        }
+                        showSystemMessage(`${data.name} انضم للمكالمة`);
+                        break;
+                        
+                    case 'chat-message':
+                        displayMessage(data.message, data.senderName, false);
+                        break;
+                        
+                    case 'user-left':
+                        showSystemMessage(`${data.name} غادر المكالمة`);
+                        break;
+                        
+                    case 'audio-state':
+                        updateParticipantAudioState(data.peerId, data.muted);
+                        break;
+                        
+                    case 'video-state':
+                        updateParticipantVideoState(data.peerId, data.cameraOff);
+                        break;
+                        
+                    default:
+                        console.log('نوع بيانات غير معروف:', data.type);
+                }
+            } catch (error) {
+                console.error('خطأ في معالجة البيانات:', error);
+            }
+        }
+
+        // === إدارة المشاركين المحسنة ===
+        function addParticipant(peerId, name) {
+            if (document.getElementById(`participant-${peerId}`)) return;
+
+            const li = document.createElement('li');
+            li.id = `participant-${peerId}`;
+            li.innerHTML = `
+                <span>${sanitizeText(name)}</span>
+                <div class="participant-status">
+                    <span class="audio-status" id="audio-status-${peerId}">🎤</span>
+                    <span class="video-status" id="video-status-${peerId}">📷</span>
+                    <small>${peerId.substr(0, 8)}...</small>
+                </div>
+            `;
+            participantsList.appendChild(li);
+            
+            // تخزين معلومات المشارك
+            participantStates[peerId] = {
+                name: name,
+                muted: false,
+                cameraOff: false
+            };
+            
+            updateParticipantCount();
+        }
+
+        function updateParticipantAudioState(peerId, muted) {
+            const audioStatus = document.getElementById(`audio-status-${peerId}`);
+            if (audioStatus) {
+                audioStatus.textContent = muted ? '🔇' : '🎤';
+                audioStatus.className = muted ? 'audio-status muted' : 'audio-status unmuted';
+            }
+            
+            if (participantStates[peerId]) {
+                participantStates[peerId].muted = muted;
+            }
+            
+            // تحديث مؤشر الصوت في الفيديو
+            const videoContainer = document.getElementById(`video-container-${peerId}`);
+            if (videoContainer) {
+                let audioIndicator = videoContainer.querySelector('.audio-indicator');
+                if (!audioIndicator) {
+                    audioIndicator = document.createElement('div');
+                    audioIndicator.className = 'audio-indicator';
+                    videoContainer.appendChild(audioIndicator);
+                }
+                audioIndicator.textContent = muted ? '🔇' : '🎤';
+                audioIndicator.className = muted ? 'audio-indicator muted' : 'audio-indicator unmuted';
+            }
+        }
+
+        function updateParticipantVideoState(peerId, cameraOff) {
+            const videoStatus = document.getElementById(`video-status-${peerId}`);
+            if (videoStatus) {
+                videoStatus.textContent = cameraOff ? '📷' : '📹';
+            }
+            
+            if (participantStates[peerId]) {
+                participantStates[peerId].cameraOff = cameraOff;
+            }
+        }
+
+        function removeParticipant(peerId) {
+            const participantElement = document.getElementById(`participant-${peerId}`);
+            if (participantElement) {
+                participantElement.remove();
+            }
+
+            const videoContainer = document.getElementById(`video-container-${peerId}`);
+            if (videoContainer) {
+                videoContainer.remove();
+            }
+
+            if (connections[peerId]) {
+                if (connections[peerId].dataConn) {
+                    connections[peerId].dataConn.close();
+                }
+                if (connections[peerId].mediaConn) {
+                    connections[peerId].mediaConn.close();
+                }
+                delete connections[peerId];
+            }
+
+            delete audioAnalysers[peerId];
+            delete participantStates[peerId];
+            updateParticipantCount();
+        }
+
+        function updateParticipantCount() {
+            const count = Object.keys(connections).length + 1;
+            participantCount.textContent = count;
+        }
+
+        // === إدارة الفيديو المحسنة ===
+        function addVideoStream(peerId, stream, isLocal = false) {
+            if (document.getElementById(`video-container-${peerId}`)) return;
+
+            const videoContainer = document.createElement('div');
+            videoContainer.className = 'video-container';
+            videoContainer.id = `video-container-${peerId}`;
+
+            const video = document.createElement('video');
+            video.id = `video-${peerId}`;
+            video.srcObject = stream;
+            video.autoplay = true;
+            video.playsInline = true;
+            video.muted = isLocal;
+
+            const nameTag = document.createElement('div');
+            nameTag.className = 'name-tag';
+            nameTag.textContent = isLocal ? `${myName} (أنت)` : (connections[peerId]?.name || 'مشارك');
+
+            videoContainer.appendChild(video);
+            videoContainer.appendChild(nameTag);
+            videoGrid.appendChild(videoContainer);
+        }
+
+        // === كشف المتحدث المحسن ===
+        function setupLocalAudioAnalyser() {
+            if (!localStream || !localStream.getAudioTracks().length) return;
+            
+            try {
+                if (audioContext) {
+                    audioContext.close();
+                }
+                
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const analyser = audioContext.createAnalyser();
+                const source = audioContext.createMediaStreamSource(localStream);
+                source.connect(analyser);
+                analyser.fftSize = 512;
+                analyser.smoothingTimeConstant = 0.8;
+                
+                const bufferLength = analyser.frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
+                audioAnalysers[myPeerId] = { analyser, dataArray, bufferLength };
+                
+            } catch (error) {
+                console.error('خطأ في إعداد محلل الصوت المحلي:', error);
+            }
+        }
+
+        function setupRemoteAudioAnalyser(peerId, stream) {
+            if (!stream.getAudioTracks().length) return;
+            
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const analyser = audioContext.createAnalyser();
+                const source = audioContext.createMediaStreamSource(stream);
+                source.connect(analyser);
+                analyser.fftSize = 512;
+                analyser.smoothingTimeConstant = 0.8;
+                
+                const bufferLength = analyser.frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
+                audioAnalysers[peerId] = { analyser, dataArray, bufferLength, audioContext };
+                
+            } catch (error) {
+                console.error('خطأ في إعداد محلل الصوت البعيد:', error);
+            }
+        }
+
+        function startOptimizedSpeakingDetection() {
+            if (speakingInterval) clearInterval(speakingInterval);
+            
+            speakingInterval = setInterval(() => {
+                let maxVolume = -1;
+                let speakingPeerId = null;
+
+                requestAnimationFrame(() => {
+                    for (const peerId in audioAnalysers) {
+                        const { analyser, dataArray } = audioAnalysers[peerId];
+                        
+                        if (!analyser || analyser.context?.state === 'closed') {
+                            delete audioAnalysers[peerId];
+                            continue;
+                        }
+                        
+                        try {
+                            analyser.getByteFrequencyData(dataArray);
+                            
+                            let sum = 0;
+                            const relevantFreqStart = Math.floor(dataArray.length * 0.1);
+                            const relevantFreqEnd = Math.floor(dataArray.length * 0.8);
+                            
+                            for (let i = relevantFreqStart; i < relevantFreqEnd; i++) {
+                                sum += dataArray[i] * dataArray[i];
+                            }
+                            
+                            const rms = Math.sqrt(sum / (relevantFreqEnd - relevantFreqStart));
+                            
+                            if (rms > maxVolume && rms > 25) {
+                                maxVolume = rms;
+                                speakingPeerId = peerId;
+                            }
+                        } catch (error) {
+                            delete audioAnalysers[peerId];
+                        }
+                    }
+
+                    updateSpeakingIndicator(speakingPeerId);
+                });
+            }, 150);
+        }
+
+        function updateSpeakingIndicator(speakingPeerId) {
+            document.querySelectorAll('.video-container').forEach(container => {
+                container.classList.remove('speaking');
+            });
+
+            if (speakingPeerId) {
+                const speakingContainer = document.getElementById(`video-container-${speakingPeerId}`);
+                if (speakingContainer) {
+                    speakingContainer.classList.add('speaking');
+                }
+            }
+        }
+
+        // === التحكم في الصوت والفيديو المحسن ===
+        function toggleMicrophone() {
+            if (!localStream) return;
+
+            const audioTrack = localStream.getAudioTracks()[0];
+            if (audioTrack) {
+                audioTrack.enabled = !audioTrack.enabled;
+                isMuted = !audioTrack.enabled;
+                
+                broadcast({
+                    type: 'audio-state',
+                    peerId: myPeerId,
+                    muted: isMuted
+                });
+                
+                updateMicButton();
+                updateParticipantAudioState(myPeerId, isMuted);
+            }
+        }
+
+        function updateMicButton() {
+            toggleMicBtn.classList.toggle('muted', isMuted);
+            toggleMicBtn.textContent = isMuted ? '🔇' : '🎤';
+            toggleMicBtn.title = isMuted ? 'إلغاء كتم الصوت' : 'كتم الصوت';
+        }
+
+        function toggleCamera() {
+            if (!localStream) return;
+
+            const videoTrack = localStream.getVideoTracks()[0];
+            if (videoTrack) {
+                videoTrack.enabled = !videoTrack.enabled;
+                isCameraOff = !videoTrack.enabled;
+                
+                broadcast({
+                    type: 'video-state',
+                    peerId: myPeerId,
+                    cameraOff: isCameraOff
+                });
+                
+                updateCameraButton();
+                updateParticipantVideoState(myPeerId, isCameraOff);
+            }
+        }
+
+        function updateCameraButton() {
+            toggleCamBtn.classList.toggle('off', isCameraOff);
+            toggleCamBtn.textContent = isCameraOff ? '📷' : '📹';
+            toggleCamBtn.title = isCameraOff ? 'تشغيل الكاميرا' : 'إيقاف الكاميرا';
+        }
+
+        // === مشاركة الشاشة المحسنة ===
+        async function toggleScreenSharing() {
+            if (isSharingScreen) {
+                await stopScreenSharing();
+            } else {
+                await startScreenSharing();
+            }
+        }
+
+        async function startScreenSharing() {
+            try {
+                showLoadingIndicator('جاري بدء مشاركة الشاشة...');
+                
+                screenStream = await navigator.mediaDevices.getDisplayMedia({ 
+                    video: {
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 },
+                        frameRate: { ideal: 30 }
+                    },
+                    audio: true 
+                });
+                
+                isSharingScreen = true;
+                shareScreenBtn.classList.add('sharing');
+                shareScreenBtn.textContent = '⏹️';
+                shareScreenBtn.title = 'إيقاف مشاركة الشاشة';
+
+                const screenTrack = screenStream.getVideoTracks()[0];
+                
+                Object.values(connections).forEach(conn => {
+                    if (conn.mediaConn && conn.mediaConn.peerConnection) {
+                        const sender = conn.mediaConn.peerConnection.getSenders().find(s => 
+                            s.track && s.track.kind === 'video'
+                        );
+                        if (sender) {
+                            sender.replaceTrack(screenTrack);
+                        }
+                    }
+                });
+                
+                const localVideo = document.getElementById(`video-${myPeerId}`);
+                if (localVideo) {
+                    const newStream = new MediaStream([
+                        screenTrack,
+                        ...(localStream.getAudioTracks())
+                    ]);
+                    localVideo.srcObject = newStream;
+                }
+
+                screenTrack.onended = () => {
+                    stopScreenSharing();
+                };
+
+                hideLoadingIndicator();
+                showSystemMessage('بدأت مشاركة الشاشة');
+
+            } catch (error) {
+                console.error("خطأ في مشاركة الشاشة:", error);
+                hideLoadingIndicator();
+                alert('فشل في مشاركة الشاشة. تأكد من السماح بالمشاركة.');
+            }
+        }
+
+        async function stopScreenSharing() {
+            if (!isSharingScreen) return;
+
+            isSharingScreen = false;
+            shareScreenBtn.classList.remove('sharing');
+            shareScreenBtn.textContent = '🖥️';
+            shareScreenBtn.title = 'مشاركة الشاشة';
+
+            if (screenStream) {
+                screenStream.getTracks().forEach(track => track.stop());
+                screenStream = null;
+            }
+
+            if (localStream && localStream.getVideoTracks().length > 0) {
+                const videoTrack = localStream.getVideoTracks()[0];
+                
+                Object.values(connections).forEach(conn => {
+                    if (conn.mediaConn && conn.mediaConn.peerConnection) {
+                        const sender = conn.mediaConn.peerConnection.getSenders().find(s => 
+                            s.track && s.track.kind === 'video'
+                        );
+                        if (sender) {
+                            sender.replaceTrack(videoTrack);
+                        }
+                    }
+                });
+                
+                const localVideo = document.getElementById(`video-${myPeerId}`);
+                if (localVideo) {
+                    localVideo.srcObject = localStream;
+                }
+            }
+
+            showSystemMessage('توقفت مشاركة الشاشة');
+        }
+
+        // === الدردشة المحسنة ===
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            if (message.length > 500) {
+                alert('الرسالة طويلة جداً. الحد الأقصى 500 حرف.');
+                return;
+            }
+
+            displayMessage(message, myName, true);
+            
+            broadcast({
+                type: 'chat-message',
+                message: message,
+                senderName: myName,
+                timestamp: Date.now()
+            });
+
+            messageInput.value = '';
+        }
+
+        function displayMessage(message, senderName, isMine) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isMine ? 'mine' : 'theirs'}`;
+            
+            const sanitizedMessage = sanitizeText(message);
+            const sanitizedSender = sanitizeText(senderName);
+            
+            const timestamp = new Date().toLocaleTimeString('ar-SA', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            messageDiv.innerHTML = isMine ? 
+                `${sanitizedMessage} <small>${timestamp}</small>` : 
+                `<strong>${sanitizedSender}:</strong> ${sanitizedMessage} <small>${timestamp}</small>`;
+                
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            
+            // تحديد عدد الرسائل للأداء
+            if (messagesDiv.children.length > 100) {
+                messagesDiv.removeChild(messagesDiv.firstChild);
+            }
+        }
+
+        function showSystemMessage(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message system';
+            
+            const timestamp = new Date().toLocaleTimeString('ar-SA', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            messageDiv.textContent = `${sanitizeText(message)} - ${timestamp}`;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // === البث للجميع المحسن ===
+        function broadcast(data) {
+            Object.values(connections).forEach(conn => {
+                if (conn.dataConn && conn.dataConn.open) {
+                    try {
+                        conn.dataConn.send(data);
+                    } catch (error) {
+                        console.error('خطأ في الإرسال:', error);
+                    }
+                }
+            });
+        }
+
+        // === إنهاء المكالمة المحسن ===
+        function endCall() {
+            if (confirm('هل تريد إنهاء المكالمة؟')) {
+                broadcast({
+                    type: 'user-left',
+                    name: myName,
+                    peerId: myPeerId
+                });
+
+                cleanup();
+                
+                groupContainer.style.display = 'none';
+                connectionArea.style.display = 'block';
+                
+                videoGrid.innerHTML = '';
+                participantsList.innerHTML = '';
+                messagesDiv.innerHTML = '';
+                participantStates = {};
+                
+                connectionManager.reset();
+                showStatus('connection-status', 'info', 'تم إنهاء المكالمة.');
+            }
+        }
+
+        // === التنظيف المحسن ===
+        function cleanup() {
+            if (speakingInterval) {
+                clearInterval(speakingInterval);
+                speakingInterval = null;
+            }
+
+            if (statsMonitor) {
+                statsMonitor.stop();
+            }
+
+            Object.values(connections).forEach(conn => {
+                if (conn.dataConn) conn.dataConn.close();
+                if (conn.mediaConn) conn.mediaConn.close();
+            });
+            connections = {};
+
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+
+            if (screenStream) {
+                screenStream.getTracks().forEach(track => track.stop());
+                screenStream = null;
+            }
+
+            if (audioContext) {
+                audioContext.close();
+                audioContext = null;
+            }
+
+            Object.values(audioAnalysers).forEach(analyser => {
+                if (analyser.audioContext) {
+                    analyser.audioContext.close();
+                }
+            });
+            audioAnalysers = {};
+
+            if (peer) {
+                peer.destroy();
+                peer = null;
+            }
+
+            isReconnecting = false;
+            lastConnectedPeerId = null;
+        }
+
+        // === الوظائف المساعدة المحسنة ===
+        function showLoadingIndicator(message) {
+            hideLoadingIndicator(); // إزالة أي مؤشر سابق
+            
+            const loader = document.createElement('div');
+            loader.id = 'loading-indicator';
+            loader.innerHTML = `
+                <div class="spinner"></div>
+                <p>${sanitizeText(message)}</p>
+            `;
+            document.body.appendChild(loader);
+        }
+
+        function hideLoadingIndicator() {
+            const loader = document.getElementById('loading-indicator');
+            if (loader) loader.remove();
+        }
+
+        function copyInviteLink() {
+            inviteUrl.select();
+            inviteUrl.setSelectionRange(0, 99999);
+            
+            try {
+                document.execCommand('copy');
+                showStatus('connection-status', 'success', 'تم نسخ الرابط!');
+            } catch (error) {
+                console.error('خطأ في النسخ:', error);
+                
+                // استخدام Clipboard API كبديل
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(inviteUrl.value).then(() => {
+                        showStatus('connection-status', 'success', 'تم نسخ الرابط!');
+                    }).catch(() => {
+                        alert('فشل في نسخ الرابط. انسخه يدوياً.');
+                    });
+                } else {
+                    alert('فشل في نسخ الرابط. انسخه يدوياً.');
+                }
+            }
+        }
+
+        function showStatus(elementId, type, message) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            element.innerHTML = `<div class="status ${type}">${sanitizeText(message)}</div>`;
+            
+            if (type !== 'error') {
+                setTimeout(() => {
+                    if (element.innerHTML.includes(sanitizeText(message))) {
+                        element.innerHTML = '';
+                    }
+                }, 5000);
+            }
+        }
+
+        function sanitizeText(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function saveSettings() {
+            try {
+                const settings = {
+                    name: myName,
+                    audioDevice: audioSelect.value,
+                    videoDevice: videoSelect.value
+                };
+                localStorage.setItem('groupCallSettings', JSON.stringify(settings));
+            } catch (error) {
+                console.error('خطأ في حفظ الإعدادات:', error);
+            }
+        }
+
+        function loadSettings() {
+            try {
+                const settings = JSON.parse(localStorage.getItem('groupCallSettings') || '{}');
+                if (settings.name) {
+                    nameInput.value = settings.name;
+                }
+                if (settings.audioDevice) {
+                    audioSelect.value = settings.audioDevice;
+                }
+                if (settings.videoDevice) {
+                    videoSelect.value = settings.videoDevice;
+                }
+            } catch (error) {
+                console.error('خطأ في تحميل الإعدادات:', error);
+            }
+        }
+
+        // تنظيف الموارد عند إغلاق الصفحة
+        window.addEventListener('beforeunload', cleanup);
+
+    </script>
+</body>
+</html>
