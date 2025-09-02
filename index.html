@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تطبيق اتصالات جماعية متقدم - الإصدار 2.0</title>
+    <title>تطبيق اتصالات الغول - الإصدار 2.0</title>
     <style>
         :root { 
             --primary-color: #007bff; 
@@ -831,6 +831,12 @@
                 setupArea.style.display = 'none';
                 connectionArea.style.display = 'block';
                 
+                // === الحل: إضافة الفيديو المحلي فوراً بعد بدء الوسائط ===
+                groupContainer.style.display = 'grid';
+                addVideoStream(myPeerId, localStream, true);
+                startOptimizedSpeakingDetection();
+                statsMonitor.start();
+                
             } catch (error) {
                 console.error('خطأ في بدء التطبيق:', error);
                 hideLoadingIndicator();
@@ -1126,7 +1132,7 @@
                 connectionArea.style.display = 'none';
                 groupContainer.style.display = 'block';
                 
-                addVideoStream(myPeerId, localStream, true);
+                // === تم نقل إضافة الفيديو المحلي إلى handleConfirmName ===
                 startOptimizedSpeakingDetection();
                 statsMonitor.start();
                 
